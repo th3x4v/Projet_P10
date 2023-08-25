@@ -1,32 +1,40 @@
 from django.db import models
 from django.conf import settings
+import uuid
 
 
 class Contributor(models.Model):
     """Represents a user who contributes to a project"""
 
-    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    project = models.ForeignKey(to="Project", on_delete=models.CASCADE)
+    user_id = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    project_id = models.ForeignKey(
+        to="Project", on_delete=models.CASCADE, related_name="contributors"
+    )
+
+    class Meta:
+        unique_together = ("project_id", "user_id")
 
 
 class Project(models.Model):
     """Represents a project in the SoftDesk Support system"""
 
+    TYPES_CHOICES = (
+        ("BACKEND", "Back-end"),
+        ("FRONTEND", "Front-end"),
+        ("IOS", "iOS"),
+        ("ANDROID", "Android"),
+    )
+
     name = models.CharField(max_length=100)
     description = models.TextField()
-    project_type = models.CharField(max_length=20)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    contributors = models.ManyToManyField(through="Contributor")
+    project_type = models.CharField(max_length=20, choices=TYPES_CHOICES)
+    author_user_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+    contributors_id = models.ManyToManyField("Contributor", related_name="projects")
 
     def __str__(self):
         return self.name
-
-
-class Contributor(models.Model):
-    """Represents a user who contributes to a project"""
-
-    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    project = models.ForeignKey(to="Project", on_delete=models.CASCADE)
 
 
 class Issue(models.Model):
@@ -52,10 +60,14 @@ class Issue(models.Model):
     description = models.CharField(max_length=2048, blank=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES)
     tag = models.CharField(max_length=10, choices=TAG_CHOICES)
-    project = models.ForeignKey(
+    project_id = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="issues"
     )
-    assigned_to = models.ForeignKey(
+    author_user_id = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    assigned_to_user_id = models.ForeignKey(
         Contributor, on_delete=models.CASCADE, related_name="assigned_issues"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="To Do")
@@ -70,10 +82,9 @@ class Comment(models.Model):
 
     text = models.TextField()
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(
+    author_user_id = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="authored_comments",
     )
-    unique_identifier = models.UUIDField()
+    unique_identifier = models.UUIDField(default=uuid.uuid4, editable=False)
     time_created = models.DateTimeField(auto_now_add=True)

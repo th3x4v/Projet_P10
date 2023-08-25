@@ -13,9 +13,37 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework_nested import routers
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from Softdesk.views import UserViewSet, ProjectViewSet, IssueViewSet, CommentViewSet
+
+
+router = routers.SimpleRouter()
+
+router.register(r"projects", ProjectViewSet)
+
+projects_router = routers.NestedSimpleRouter(router, r"projects", lookup="project")
+projects_router.register(r"issues", IssueViewSet, basename="issues")
+
+
+issues_router = routers.NestedSimpleRouter(projects_router, r"issues", lookup="issue")
+issues_router.register(r"comments", CommentViewSet, basename="comments")
+
+users_router = routers.NestedSimpleRouter(router, r"projects", lookup="user")
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("", include(router.urls)),
+    path("", include(projects_router.urls)),
+    path("", include(issues_router.urls)),
+    path("", include(users_router.urls)),
 ]
