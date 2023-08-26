@@ -11,3 +11,5 @@ class User(AbstractUser):
     age = models.PositiveIntegerField()
     can_be_contacted = models.BooleanField()
     can_data_be_shared = models.BooleanField()
+
+

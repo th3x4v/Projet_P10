@@ -6,13 +6,13 @@ import uuid
 class Contributor(models.Model):
     """Represents a user who contributes to a project"""
 
-    user_id = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    project_id = models.ForeignKey(
+    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    project = models.ForeignKey(
         to="Project", on_delete=models.CASCADE, related_name="contributors"
     )
 
     class Meta:
-        unique_together = ("project_id", "user_id")
+        unique_together = ("project", "user")
 
 
 class Project(models.Model):
@@ -28,9 +28,7 @@ class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     project_type = models.CharField(max_length=20, choices=TYPES_CHOICES)
-    author_user_id = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
-    )
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     contributors_id = models.ManyToManyField("Contributor", related_name="projects")
 
     def __str__(self):
@@ -60,10 +58,10 @@ class Issue(models.Model):
     description = models.CharField(max_length=2048, blank=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES)
     tag = models.CharField(max_length=10, choices=TAG_CHOICES)
-    project_id = models.ForeignKey(
+    project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="issues"
     )
-    author_user_id = models.ForeignKey(
+    author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
@@ -82,7 +80,7 @@ class Comment(models.Model):
 
     text = models.TextField()
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name="comments")
-    author_user_id = models.ForeignKey(
+    author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )

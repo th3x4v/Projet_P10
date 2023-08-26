@@ -26,6 +26,7 @@ from Softdesk.views import UserViewSet, ProjectViewSet, IssueViewSet, CommentVie
 router = routers.SimpleRouter()
 
 router.register(r"projects", ProjectViewSet)
+router.register(r"users", UserViewSet)
 
 projects_router = routers.NestedSimpleRouter(router, r"projects", lookup="project")
 projects_router.register(r"issues", IssueViewSet, basename="issues")

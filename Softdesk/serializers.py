@@ -12,13 +12,13 @@ class UserSerializer(serializers.ModelSerializer):
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        fields = ["id", "user_id"]
+        fields = ["user", "project"]
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ["id", "title", "project_type", "author_user_id"]
+        fields = ["id", "name", "project_type", "author"]
 
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
@@ -31,13 +31,12 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "project_type",
-            "author_user_id",
-            "contributors_id",
+            "author",
             "issues",
         ]
 
     def get_issues(self, instance):
-        queryset = Issue.objects.filter(project_id=instance.id)
+        queryset = Issue.objects.filter(project=instance.id)
         return IssueListSerializer(queryset, many=True).data
 
 
@@ -48,8 +47,8 @@ class IssueListSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "priority",
-            "project_id",
-            "assigned_to_user_id",
+            "project",
+            "assigned_to",
             "status",
             "time_created",
         ]
@@ -66,8 +65,8 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             "description",
             "priority",
             "tag",
-            "project_id",
-            "assigned_to_user_id",
+            "project",
+            "assigned_to",
             "status",
             "time_created",
             "comments",
@@ -85,7 +84,7 @@ class CommentListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "text",
-            "author_user_id",
+            "author",
             "time_created",
             "unique_identifier",
         ]
