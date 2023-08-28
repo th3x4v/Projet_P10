@@ -61,12 +61,12 @@ class Issue(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="issues"
     )
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-    )
-    assigned_to_user_id = models.ForeignKey(
-        Contributor, on_delete=models.CASCADE, related_name="assigned_issues"
+        default=author,
+        related_name="issue_assignee",
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="To Do")
     time_created = models.DateTimeField(auto_now_add=True)

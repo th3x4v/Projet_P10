@@ -1,12 +1,5 @@
 from rest_framework import serializers
 from Softdesk.models import Project, Issue, Comment, Contributor
-from accounts.models import User
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
 
 
 class ContributorSerializer(serializers.ModelSerializer):
@@ -70,10 +63,11 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             "status",
             "time_created",
             "comments",
+            "author",
         ]
 
     def get_comments(self, instance):
-        queryset = instance.articles.filter(active=True)
+        queryset = Comment.objects.filter(issue=instance.id)
         serializer = CommentListSerializer(queryset, many=True)
         return serializer.data
 
@@ -82,9 +76,11 @@ class CommentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            "id",
-            "text",
-            "author",
-            "time_created",
             "unique_identifier",
         ]
+
+
+class CommentDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ["id", "text", "author", "time_created", "unique_identifier", "issue"]
