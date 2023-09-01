@@ -1,11 +1,18 @@
 from rest_framework import serializers
 from Softdesk.models import Project, Issue, Comment, Contributor
 
+from accounts.models import User
+from accounts.serializers import UserListSerializer
+
 
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
         fields = ["user", "project"]
+
+    def get_user(self, instance):
+        queryset = User.objects.filter(id=instance.user_id)
+        return UserListSerializer(queryset, many=True).data
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
@@ -29,8 +36,13 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_issues(self, instance):
+        print("get issues.instance.id")
+        print(instance.id)
         queryset = Issue.objects.filter(project=instance.id)
         return IssueListSerializer(queryset, many=True).data
+
+    def validate_author(self, value):
+        return value  # Bypass the validation for author field
 
 
 class IssueListSerializer(serializers.ModelSerializer):
@@ -43,7 +55,6 @@ class IssueListSerializer(serializers.ModelSerializer):
             "project",
             "assigned_to",
             "status",
-            "time_created",
         ]
 
 
@@ -67,15 +78,17 @@ class IssueDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_comments(self, instance):
+        print("comment instance.id")
+        print(instance.id)
         queryset = Comment.objects.filter(issue=instance.id)
-        serializer = CommentListSerializer(queryset, many=True)
-        return serializer.data
+        return CommentListSerializer(queryset, many=True).data
 
 
 class CommentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
+            "id",
             "unique_identifier",
         ]
 

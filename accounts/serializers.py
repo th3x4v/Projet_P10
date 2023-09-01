@@ -37,8 +37,31 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
+    def validate_age(self, value):
+        if value < 15:
+            raise serializers.ValidationError("User must be at least 15 years old.")
+        return value
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ["id", "username", "age", "email", "first_name", "last_name"]
+
+    def to_representation(self, instance):
+        """Take into account privacy choices of the users"""
+        data = super().to_representation(instance)
+        if not instance.can_be_contacted:
+            data["email"] = None
+        if not instance.can_data_be_shared:
+            data["username"] = None
+            data["age"] = None
+            data["first_name"] = None
+            data["last_name"] = None
+        return data
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "age"]
