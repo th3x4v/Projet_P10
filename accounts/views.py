@@ -3,6 +3,8 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from accounts.serializers import RegisterSerializer, UserSerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework import status
+from rest_framework.response import Response
 
 
 class RegisterView(generics.CreateAPIView):
@@ -10,7 +12,16 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def update(self, request, *args, **kwargs):
+        if self.get_object() == request.user:
+            return super().update(request, *args, **kwargs)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def create(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

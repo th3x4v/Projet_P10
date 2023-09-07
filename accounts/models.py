@@ -8,8 +8,6 @@ from django.db import models
 class User(AbstractUser):
     """Represent a Custom user"""
 
-    age = models.PositiveIntegerField()
-    can_be_contacted = models.BooleanField()
-    can_data_be_shared = models.BooleanField()
-
-
+    age = models.PositiveIntegerField(default=0)
+    can_be_contacted = models.BooleanField(default=0)
+    can_data_be_shared = models.BooleanField(default=0)

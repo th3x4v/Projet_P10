@@ -9,6 +9,7 @@ class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
         fields = ["user", "project"]
+        read_only_fields = ["project"]
 
     def get_user(self, instance):
         queryset = User.objects.filter(id=instance.user_id)
@@ -34,10 +35,9 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "author",
             "issues",
         ]
+        read_only_fields = ["author"]
 
     def get_issues(self, instance):
-        print("get issues.instance.id")
-        print(instance.id)
         queryset = Issue.objects.filter(project=instance.id)
         return IssueListSerializer(queryset, many=True).data
 
@@ -76,10 +76,9 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             "comments",
             "author",
         ]
+        read_only_fields = ["author", "project"]
 
     def get_comments(self, instance):
-        print("comment instance.id")
-        print(instance.id)
         queryset = Comment.objects.filter(issue=instance.id)
         return CommentListSerializer(queryset, many=True).data
 

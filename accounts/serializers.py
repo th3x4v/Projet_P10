@@ -18,6 +18,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             "age",
             "can_be_contacted",
             "can_data_be_shared",
+            "email",
+            "first_name",
+            "last_name",
         )
 
     def validate(self, attrs):

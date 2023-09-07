@@ -1,32 +1,13 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
-class IsAdminAuthenticated(BasePermission):
-    def has_permission(self, request, view):
-        # Ne donnons l’accès qu’aux utilisateurs administrateurs authentifiés
-        return bool(
-            request.user and request.user.is_authenticated and request.user.is_superuser
-        )
-
-
 class AuthorOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
-        print("object")
-        print(view.kwargs)
         project_pk = view.kwargs.get("project_pk")
         pk = view.kwargs.get("pk")
         user = request.user
-        print("user")
-        print(user)
-        print("request")
-        print(request)
-        print("project_pk")
-        print(project_pk)
-        print("pk")
-        print(pk)
         if project_pk is None:
             if pk is None:
-                print("true")
                 return True
             else:
                 project_id = pk
@@ -57,18 +38,9 @@ class IsContributor(BasePermission):
 
     def has_permission(self, request, view):
         print("is contibutor permission")
-        print(view.kwargs)
         project_pk = view.kwargs.get("project_pk")
         pk = view.kwargs.get("pk")
         user = request.user
-        print("user")
-        print(user)
-        print("request")
-        print(request)
-        print("project_pk")
-        print(project_pk)
-        print("pk")
-        print(pk)
         if project_pk is None:
             if pk is None:
                 return True
@@ -76,8 +48,6 @@ class IsContributor(BasePermission):
                 project_id = pk
         else:
             project_id = project_pk
-        print("project_id")
-        print(project_id)
         return user.is_authenticated and (
             user.contributor_set.filter(project_id=project_id).exists()
             or request.user.is_superuser

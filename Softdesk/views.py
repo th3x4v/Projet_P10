@@ -35,36 +35,36 @@ class MultipleSerializerMixin:
             return self.detail_serializer_class
         return self.serializer_class
 
-    def create(self, request, *args, **kwargs):
-        # Make a mutable copy of the request data
-        mutable_data = request.data.copy()
-        print(self.kwargs)
+    # def create(self, request, *args, **kwargs):
+    #     # Make a mutable copy of the request data
+    #     mutable_data = request.data.copy()
+    #     print(self.kwargs)
 
-        # Include the authenticated user as the author in the copy
-        mutable_data["author"] = request.user.pk
+    #     # Include the authenticated user as the author in the copy
+    #     mutable_data["author"] = request.user.pk
 
-        # Identify the project id for Issue or Contributor creation
-        try:
-            mutable_data["project"] = self.kwargs["project_pk"]
-        except:
-            pass
+    #     # Identify the project id for Issue or Contributor creation
+    #     try:
+    #         mutable_data["project"] = self.kwargs["project_pk"]
+    #     except:
+    #         pass
 
-        # Identify the issue id for Comment creation
-        try:
-            mutable_data["issue"] = self.kwargs["issue_pk"]
-        except:
-            pass
+    #     # Identify the issue id for Comment creation
+    #     try:
+    #         mutable_data["issue"] = self.kwargs["issue_pk"]
+    #     except:
+    #         pass
 
-        # Use the detail_serializer_class for creation
-        serializer = self.get_serializer(data=mutable_data)
-        serializer.is_valid(raise_exception=True)
-        # Save the instance and return the response
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+    #     # Use the detail_serializer_class for creation
+    #     serializer = self.get_serializer(data=mutable_data)
+    #     serializer.is_valid(raise_exception=True)
+    #     # Save the instance and return the response
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
 
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+    #     return Response(
+    #         serializer.data, status=status.HTTP_201_CREATED, headers=headers
+    #     )
 
 
 class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
@@ -73,25 +73,24 @@ class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailSerializer
 
-    def perform_create(self, serializer):
-        # Save the project instance and get the created object
-        project = serializer.save()
+    # def perform_create(self, serializer):
+    #     # Save the project instance and get the created object
+    #     project = serializer.save()
 
-        # Creation of contributor object using the related_name attribute contributors
-        project.contributors.create(user=project.author)
+    #     # Creation of contributor object using the related_name attribute contributors
+    #     project.contributors.create(user=project.author)
 
     def get_queryset(self):
         """Return a queryset only of the project the user is contributor to"""
         user = self.request.user
         return Project.objects.filter(contributors__user=user)
 
-
-"""            def perform_create(self, serializer):
+    def perform_create(self, serializer):
         # Save the project instance and get the created object
         project = serializer.save(author=self.request.user)
 
         # Creation of contributor object using the related_name attribute contributors
-        project.contributors.create(user=project.author)"""
+        project.contributors.create(user=project.author)
 
 
 class IssueViewSet(MultipleSerializerMixin, ModelViewSet):
@@ -101,9 +100,13 @@ class IssueViewSet(MultipleSerializerMixin, ModelViewSet):
     detail_serializer_class = IssueDetailSerializer
 
     def get_queryset(self):
-        print("kwargs project_pk")
-        print(self.kwargs["project_pk"])
         return Issue.objects.filter(project_id=self.kwargs["project_pk"])
+
+    def perform_create(self, serializer):
+        project_id = self.kwargs["project_pk"]
+        project = Project.objects.get(id=project_id)
+        # Save the project instance and get the created object
+        issue = serializer.save(author=self.request.user, project=project)
 
 
 class CommentViewSet(MultipleSerializerMixin, ModelViewSet):
@@ -113,9 +116,13 @@ class CommentViewSet(MultipleSerializerMixin, ModelViewSet):
     detail_serializer_class = CommentDetailSerializer
 
     def get_queryset(self):
-        print("self.kwargs[issue_pk]")
-        print(self.kwargs["issue_pk"])
         return Comment.objects.filter(issue_id=self.kwargs["issue_pk"])
+
+    def perform_create(self, serializer):
+        issue_id = self.kwargs["issue_pk"]
+        issue = Issue.objects.get(id=issue_id)
+        # Save the project instance and get the created object
+        issue = serializer.save(author=self.request.user, issue=issue)
 
 
 class ContributorViewSet(MultipleSerializerMixin, ModelViewSet):
@@ -126,7 +133,12 @@ class ContributorViewSet(MultipleSerializerMixin, ModelViewSet):
 
     def get_queryset(self):
         # getting the current project
-        print("debug")
         project_id = self.kwargs["project_pk"]
         queryset = Contributor.objects.filter(project=project_id)
         return queryset
+
+    def perform_create(self, serializer):
+        project_id = self.kwargs["project_pk"]
+        project = Project.objects.get(id=project_id)
+        # Save the project instance and get the created object
+        contributor = serializer.save(project=project)
