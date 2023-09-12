@@ -1,4 +1,4 @@
-# Openclassroom Projet 09
+# Openclassroom Projet 10
 Projet réalisé dans le cadre de ma formation OpenClassrooms Développeur d'Applications Python.  
 Il s'agit d'une application web réalisée avec Django pour une société fictive, Softdesk.  
 L'application SoftDesk Support vise à permettre aux entreprises B2B de remonter et de suivre des problèmes techniques de manière efficace grâce à une API RESTful.
