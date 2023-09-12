@@ -1,9 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from Softdesk.permissions import IsContributor, AuthorOrReadOnly
-from rest_framework.exceptions import PermissionDenied
+
 
 from .models import Project, Issue, Comment, Contributor
 
@@ -24,7 +22,6 @@ class MultipleSerializerMixin:
     """
 
     def get_serializer_class(self):
-        print(self.action)
         if (
             self.action == "retrieve"
             or self.action == "create"
@@ -35,50 +32,12 @@ class MultipleSerializerMixin:
             return self.detail_serializer_class
         return self.serializer_class
 
-    # def create(self, request, *args, **kwargs):
-    #     # Make a mutable copy of the request data
-    #     mutable_data = request.data.copy()
-    #     print(self.kwargs)
-
-    #     # Include the authenticated user as the author in the copy
-    #     mutable_data["author"] = request.user.pk
-
-    #     # Identify the project id for Issue or Contributor creation
-    #     try:
-    #         mutable_data["project"] = self.kwargs["project_pk"]
-    #     except:
-    #         pass
-
-    #     # Identify the issue id for Comment creation
-    #     try:
-    #         mutable_data["issue"] = self.kwargs["issue_pk"]
-    #     except:
-    #         pass
-
-    #     # Use the detail_serializer_class for creation
-    #     serializer = self.get_serializer(data=mutable_data)
-    #     serializer.is_valid(raise_exception=True)
-    #     # Save the instance and return the response
-    #     self.perform_create(serializer)
-    #     headers = self.get_success_headers(serializer.data)
-
-    #     return Response(
-    #         serializer.data, status=status.HTTP_201_CREATED, headers=headers
-    #     )
-
 
 class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
     permission_classes = [AuthorOrReadOnly, IsContributor, IsAuthenticated]
     queryset = Project.objects.all()
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailSerializer
-
-    # def perform_create(self, serializer):
-    #     # Save the project instance and get the created object
-    #     project = serializer.save()
-
-    #     # Creation of contributor object using the related_name attribute contributors
-    #     project.contributors.create(user=project.author)
 
     def get_queryset(self):
         """Return a queryset only of the project the user is contributor to"""
@@ -106,7 +65,7 @@ class IssueViewSet(MultipleSerializerMixin, ModelViewSet):
         project_id = self.kwargs["project_pk"]
         project = Project.objects.get(id=project_id)
         # Save the project instance and get the created object
-        issue = serializer.save(author=self.request.user, project=project)
+        serializer.save(author=self.request.user, project=project)
 
 
 class CommentViewSet(MultipleSerializerMixin, ModelViewSet):
@@ -141,4 +100,4 @@ class ContributorViewSet(MultipleSerializerMixin, ModelViewSet):
         project_id = self.kwargs["project_pk"]
         project = Project.objects.get(id=project_id)
         # Save the project instance and get the created object
-        contributor = serializer.save(project=project)
+        serializer.save(project=project)

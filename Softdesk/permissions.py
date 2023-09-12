@@ -15,7 +15,6 @@ class AuthorOrReadOnly(BasePermission):
             project_id = project_pk
 
         if request.method in SAFE_METHODS:
-            print("safe_method")
             user.contributor_set.filter(
                 project_id=project_id
             ).exists() or request.user.is_superuser
@@ -24,7 +23,6 @@ class AuthorOrReadOnly(BasePermission):
                 or request.user.is_superuser
             )
         else:
-            print("no safe_method")
             if obj.author == request.user:
                 print("author")
                 return True
@@ -37,7 +35,6 @@ class IsContributor(BasePermission):
     """
 
     def has_permission(self, request, view):
-        print("is contibutor permission")
         project_pk = view.kwargs.get("project_pk")
         pk = view.kwargs.get("pk")
         user = request.user
@@ -59,7 +56,8 @@ Create Project: Everyone connected can create a Project.
 Permission: IsAuthenticated
 List Projects: Everyone connected can see the list of Projects.
 Permission: IsAuthenticated
-Retrieve Project Details: Only contributors of a project can see information about that project, including contributors, issues, and comments related to the project.
+Retrieve Project Details: Only contributors of a project can see information about that project, including
+contributors, issues, and comments related to the project.
 Permission: IsContributor
 Create Contributor: Contributors of a project can create a contributor for that project.
 Permission: IsContributor
