@@ -18,7 +18,18 @@ from .serializers import (
 
 class MultipleSerializerMixin:
     """
-    Get the right serializer for the current action
+    A mixin class that provides dynamic serializer selection based on the view action.
+
+    This mixin is designed to be used with Django Rest Framework's ModelViewSet classes
+    to automatically choose the appropriate serializer class based on the action
+    (create, retrieve, update, partial_update).
+
+    Attributes:
+        detail_serializer_class (serializer): The serializer class to use for detail actions (retrieve).
+        serializer_class (serializer): The serializer class to use for non-detail actions (create, update).
+
+    Methods:
+        get_serializer_class(): Returns the appropriate serializer class based on the view action.
     """
 
     def get_serializer_class(self):
@@ -34,13 +45,29 @@ class MultipleSerializerMixin:
 
 
 class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
+    """
+    A viewset for managing Project instances.
+
+    This viewset provides CRUD (Create, Retrieve, Update, Delete) operations for Project instances.
+    It also customizes the queryset to only include projects where the user is a contributor.
+
+    Attributes:
+        permission_classes (list): The permission classes required for accessing this viewset.
+        queryset (queryset): The initial queryset for retrieving projects.
+        serializer_class (serializer): The serializer class for listing projects.
+        detail_serializer_class (serializer): The serializer class for detailed project views.
+
+    Methods:
+        get_queryset(): Returns a queryset filtered to include projects where the user is a contributor.
+        perform_create(serializer): Customizes project creation to include the project's author as a contributor.
+    """
+
     permission_classes = [AuthorOrReadOnly, IsContributor, IsAuthenticated]
     queryset = Project.objects.all()
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailSerializer
 
     def get_queryset(self):
-        """Return a queryset only of the project the user is contributor to"""
         user = self.request.user
         return Project.objects.filter(contributors__user=user)
 
@@ -53,6 +80,23 @@ class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
 
 
 class IssueViewSet(MultipleSerializerMixin, ModelViewSet):
+    """
+    A viewset for managing Issue instances within a Project.
+
+    This viewset provides CRUD (Create, Retrieve, Update, Delete) operations for Issue instances
+    that are associated with a specific Project.
+
+    Attributes:
+        permission_classes (list): The permission classes required for accessing this viewset.
+        queryset (queryset): The initial queryset for retrieving issues.
+        serializer_class (serializer): The serializer class for listing issues.
+        detail_serializer_class (serializer): The serializer class for detailed issue views.
+
+    Methods:
+        get_queryset(): Returns a queryset filtered to include issues within the specified project.
+        perform_create(serializer): Customizes issue creation to associate it with the project and set the author.
+    """
+
     permission_classes = [AuthorOrReadOnly, IsContributor, IsAuthenticated]
     queryset = Issue.objects.all()
     serializer_class = IssueListSerializer
@@ -69,6 +113,23 @@ class IssueViewSet(MultipleSerializerMixin, ModelViewSet):
 
 
 class CommentViewSet(MultipleSerializerMixin, ModelViewSet):
+    """
+    A viewset for managing Comment instances within an Issue.
+
+    This viewset provides CRUD (Create, Retrieve, Update, Delete) operations for Comment instances
+    that are associated with a specific Issue.
+
+    Attributes:
+        permission_classes (list): The permission classes required for accessing this viewset.
+        queryset (queryset): The initial queryset for retrieving comments.
+        serializer_class (serializer): The serializer class for listing comments.
+        detail_serializer_class (serializer): The serializer class for detailed comment views.
+
+    Methods:
+        get_queryset(): Returns a queryset filtered to include comments within the specified issue.
+        perform_create(serializer): Customizes comment creation to associate it with the issue and set the author.
+    """
+
     permission_classes = [AuthorOrReadOnly, IsContributor, IsAuthenticated]
     queryset = Comment.objects.all()
     serializer_class = CommentListSerializer
@@ -85,6 +146,23 @@ class CommentViewSet(MultipleSerializerMixin, ModelViewSet):
 
 
 class ContributorViewSet(MultipleSerializerMixin, ModelViewSet):
+    """
+    A viewset for managing Contributor instances within a Project.
+
+    This viewset provides CRUD (Create, Retrieve, Update, Delete) operations for Contributor instances
+    that are associated with a specific Project.
+
+    Attributes:
+        permission_classes (list): The permission classes required for accessing this viewset.
+        queryset (queryset): The initial queryset for retrieving contributors.
+        serializer_class (serializer): The serializer class for listing contributors.
+        detail_serializer_class (serializer): The serializer class for detailed contributor views.
+
+    Methods:
+        get_queryset(): Returns a queryset filtered to include contributors within the specified project.
+        perform_create(serializer): Customizes contributor creation to associate it with the project.
+    """
+
     permission_classes = [IsContributor, IsAuthenticated]
     queryset = Contributor.objects.all()
     serializer_class = ContributorSerializer

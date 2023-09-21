@@ -2,6 +2,22 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class AuthorOrReadOnly(BasePermission):
+    """
+    Custom permission class for controlling object-level permissions related to authors and read-only access.
+
+    This permission class checks if the user has the necessary permissions to perform actions on objects
+    based on whether they are the author of the object or have read-only access. It also allows superusers
+    unrestricted access.
+
+    Attributes:
+        None
+
+    Methods:
+        - has_object_permission(self, request, view, obj): Checks if the user has permission to perform the
+          specified action on the given object.
+
+    """
+
     def has_object_permission(self, request, view, obj):
         project_pk = view.kwargs.get("project_pk")
         pk = view.kwargs.get("pk")
@@ -31,7 +47,18 @@ class AuthorOrReadOnly(BasePermission):
 
 class IsContributor(BasePermission):
     """
-    Allows access only to contributors to a project.
+    Custom permission class for allowing access only to contributors of a project.
+
+    This permission class checks if the user is a contributor to a specific project or if they are a superuser.
+    It is designed to restrict access to certain views based on project-related permissions.
+
+    Attributes:
+        None
+
+    Methods:
+        - has_permission(self, request, view): Checks if the user has permission to access a view based on
+          their contributor status or superuser status.
+
     """
 
     def has_permission(self, request, view):
@@ -49,31 +76,3 @@ class IsContributor(BasePermission):
             user.contributor_set.filter(project_id=project_id).exists()
             or request.user.is_superuser
         )
-
-
-"""
-Create Project: Everyone connected can create a Project.
-Permission: IsAuthenticated
-List Projects: Everyone connected can see the list of Projects.
-Permission: IsAuthenticated
-Retrieve Project Details: Only contributors of a project can see information about that project, including
-contributors, issues, and comments related to the project.
-Permission: IsContributor
-Create Contributor: Contributors of a project can create a contributor for that project.
-Permission: IsContributor
-List Contributors: Contributors of a project can see the list of contributors for that project.
-Permission: IsContributor
-Retrieve Contributor Details: Contributors of a project can see details of other contributors in the same project.
-Permission: IsContributor
-Create Issue: Contributors of a project can create an issue for that project.
-Permission: IsContributor
-List Issues: Contributors of a project can see the list of issues for that project.
-Permission: IsContributor
-Retrieve Issue Details: Contributors of a project can see details of an issue in the same project.
-Permission: IsContributor
-Create Comment: Contributors of a project can create a comment on an issue in that project.
-Permission: IsContributor
-List Comments: Contributors of a project can see the list of comments for issues in that project.
-Permission: IsContributor
-Retrieve Comment Details: Contributors of a project can see details of a comment on an issue in the same project.
-Permission: IsContributor"""
