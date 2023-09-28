@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from Softdesk.permissions import IsContributor, AuthorOrReadOnly
 
 
@@ -69,7 +69,11 @@ class ProjectViewSet(MultipleSerializerMixin, ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Project.objects.filter(contributors__user=user)
+        if user.is_superuser:
+            project_list = Project.objects.all()
+        else:
+            project_list = Project.objects.filter(contributors__user=user)
+        return project_list
 
     def perform_create(self, serializer):
         # Save the project instance and get the created object
